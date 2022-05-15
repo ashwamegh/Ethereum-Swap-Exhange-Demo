@@ -1,9 +1,7 @@
 import React from 'react';
 import Identicon from 'identicon.js';
-import './App.css';
 
 function Navbar({ account }) {
-	console.log(account)
 	return (
 		<>
 			<nav className="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
@@ -26,6 +24,7 @@ function Navbar({ account }) {
 									className='ml-2' src={`data:image/png;base64,${new Identicon(account, 30).toString()}`}
 									width={30}
 									height={30}
+									alt="Identicon icon"
 								></img>
 							</li> :
 							<span></span>

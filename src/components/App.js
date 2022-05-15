@@ -4,9 +4,17 @@ import Web3 from 'web3';
 import Navbar from './Navbar';
 import './App.css';
 
-function App() {
+import EthSwap from './../abis/EthSwap.json'
+import Token from './../abis/Token.json'
+import Main from './Main';
 
-	const [ account, setAccount ] = useState('');
+function App() {
+	const [loading, setLoading] = useState(true);
+	const [account, setAccount] = useState('');
+	const [token, setToken] = useState({});
+	const [ethSwap, setEthSwap] = useState({});
+	const [tokenBalance, setTokenBalance] = useState(0);
+	const [ethBalance, setEthBalance] = useState(0);
 
 	async function loadWeb3() {
 		if (window.ethereum) {
@@ -22,16 +30,64 @@ function App() {
 	async function loadBlockchainData() {
 		const web3 = window.web3;
 		const accounts = await web3.eth.getAccounts();
-		const [activeAccount] = accounts
-		setAccount(activeAccount)
-		const ethBalance = await web3.eth.getBalance(activeAccount);
+		const [_account] = accounts
+
+		setAccount(_account)
+		const _ethBalance = await web3.eth.getBalance(_account);
+		setEthBalance(_ethBalance)
+
+		// Load Token
+		const networkId = await web3.eth.net.getId();
+		const tokenData = Token.networks[networkId]
+
+		if (tokenData) {
+			const _token = new web3.eth.Contract(Token.abi, tokenData.address);
+			console.log("Token contract", _token)
+			setToken(_token)
+
+			const _tokenBalance = await _token.methods.balanceOf(_account).call();
+			setTokenBalance(_tokenBalance.toString())
+			console.log("Token balance: ", _tokenBalance.toString())
+		} else window.alert("Token contract not deployed on detected network")
+
+
+		//  Load EthSwap
+		const ethSwapData = EthSwap.networks[networkId]
+
+		if (ethSwapData) {
+			const _ethSwap = new web3.eth.Contract(EthSwap.abi, ethSwapData.address);
+			console.log("EthSwap contract", _ethSwap)
+			setEthSwap(_ethSwap)
+
+			const _ethSwapBalance = await _ethSwap.methods.balanceOf(_account).call();
+			setTokenBalance(_ethSwapBalance)
+			console.log("EthSwap balance: ", _ethSwapBalance.toString())
+		} else window.alert("EthSwap contract not deployed on detected network")
+
+		setLoading(false)
+
+	}
+
+
+	function buyTokens(etherAmount) {
+		setLoading(true);
+		ethSwap.methods.buyTokens().send({
+			from: account,
+			value: etherAmount
+		}).on('transactionHash',
+			(hash) => {
+				setLoading(false);
+			},
+			(err) => {
+				console.error(err);
+			})
 	}
 
 	const runEffect = async () => {
 		await loadWeb3();
 		await loadBlockchainData();
-	  };
-	  
+	};
+
 
 	useEffect(() => {
 		runEffect();
@@ -39,14 +95,20 @@ function App() {
 
 	return (
 		<div>
-			<Navbar account={account}/>
+			<Navbar account={account} />
+
 			<div className="container-fluid mt-5">
 				<div className="row">
-					<main role="main" className="col-lg-12 d-flex text-center">
-						<div className="content mr-auto ml-auto">
-							<h1>hello, Shashank</h1>
-						</div>
-					</main>
+					{
+						loading ?
+							<p id='loader' className='text-center' > Loading...</p> :
+							<Main
+								ethBalance={ethBalance}
+								tokenBalance={tokenBalance}
+								buyTokens={buyTokens}
+							/>
+					}
+
 				</div>
 			</div>
 		</div>
