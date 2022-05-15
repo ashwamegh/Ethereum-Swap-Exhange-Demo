@@ -59,9 +59,6 @@ function App() {
 			console.log("EthSwap contract", _ethSwap)
 			setEthSwap(_ethSwap)
 
-			const _ethSwapBalance = await _ethSwap.methods.balanceOf(_account).call();
-			setTokenBalance(_ethSwapBalance)
-			console.log("EthSwap balance: ", _ethSwapBalance.toString())
 		} else window.alert("EthSwap contract not deployed on detected network")
 
 		setLoading(false)
@@ -81,6 +78,26 @@ function App() {
 			(err) => {
 				console.error(err);
 			})
+	}
+
+	function sellTokens(tokenAmount) {
+		setLoading(true);
+		token
+			.methods
+			.approve(ethSwap.address, tokenAmount)
+			.send({ from: account })
+			.on('transactionHash',
+				(hash) => {
+					ethSwap
+						.methods
+						.sellTokens(tokenAmount)
+						.send({ from: account })
+						.on('transactionHash',
+							(hash) => setLoading(false));
+				},
+				(err) => {
+					console.error(err);
+				})
 	}
 
 	const runEffect = async () => {
@@ -106,6 +123,7 @@ function App() {
 								ethBalance={ethBalance}
 								tokenBalance={tokenBalance}
 								buyTokens={buyTokens}
+								sellTokens={sellTokens}
 							/>
 					}
 

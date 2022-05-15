@@ -1,79 +1,48 @@
 import React, { useState } from 'react';
-import tokenLogo from '../token-logo.png'
-import ethLogo from '../eth-logo.png'
+import BuyForm from './BuyForm';
+import SellForm from './SellForm';
 
-function Main({ ethBalance = '0', tokenBalance = '0', buyTokens }) {
-	const [output, setOutput] = useState(0)
-	const [inputValue, setInputValue] = useState(0);
+function Main({ ethBalance = '0', tokenBalance = '0', buyTokens, sellTokens }) {
+
+	const [currentForm, setCurrentForm] = useState('buy');
 
 	return (
 		<main id="content" className='ml-auto mr-auto lg-12' style={{ width: 600, paddingTop: '3rem' }}>
+			<div className="d-flex justify-content-between mb-3">
+				<button
+					className="btn btn-light"
+					onClick={(event) => {
+						setCurrentForm('buy')
+					}}
+				>
+					Buy
+				</button>
+				<span className="text-muted">&lt; &nbsp; &gt;</span>
+				<button
+					className="btn btn-light"
+					onClick={(event) => {
+						setCurrentForm('sell')
+					}}
+				>
+					Sell
+				</button>
+			</div>
 
 			<div className="card mb-4" >
 
 				<div className="card-body">
 
-					<form
-						className="mb-3"
-						onSubmit={(event) => {
-							event.preventDefault();
-							console.log("Purchasing Tokens")
-							let etherAmount = inputValue.value.toString();
-							etherAmount = window.web3.utils.toWei(etherAmount, 'Ether');
-							buyTokens(etherAmount)
-						}}
-					>
-						<div>
-							<label className="float-left"><b>Input</b></label>
-							<span className="float-right text-muted">
-								Balance: {window.web3.utils.fromWei(ethBalance, 'Ether')}
-							</span>
-						</div>
-						<div className="input-group mb-4">
-							<input
-								type="text"
-								className="form-control form-control-lg"
-								onChange={(event) => {
-									const etherAmount = inputValue.value.toString();
-									setOutput(etherAmount * 100)
-								}}
-								ref={(_input) => setInputValue(_input)}
-								placeholder="0"
-								required />
-							<div className="input-group-append">
-								<div className="input-group-text">
-									<img src={ethLogo} height='32' alt="" />
-									&nbsp;&nbsp;&nbsp; ETH
-								</div>
-							</div>
-						</div>
-						<div>
-							<label className="float-left"><b>Output</b></label>
-							<span className="float-right text-muted">
-								Balance: {tokenBalance && window.web3.utils.fromWei(tokenBalance, 'Ether')}
-							</span>
-						</div>
-						<div className="input-group mb-2">
-							<input
-								type="text"
-								className="form-control form-control-lg"
-								placeholder="0"
-								value={output}
-								disabled
-							/>
-							<div className="input-group-append">
-								<div className="input-group-text">
-									<img src={tokenLogo} height='32' alt="" />
-									&nbsp; DApp
-								</div>
-							</div>
-						</div>
-						<div className="mb-5">
-							<span className="float-left text-muted">Exchange Rate</span>
-							<span className="float-right text-muted">1 ETH = 100 DApp</span>
-						</div>
-						<button type="submit" className="btn btn-primary btn-block btn-lg">SWAP!</button>
-					</form>
+					{currentForm === 'buy' ?
+						<BuyForm
+							ethBalance={ethBalance}
+							tokenBalance={tokenBalance}
+							buyTokens={buyTokens}
+						/> :
+						<SellForm
+							ethBalance={ethBalance}
+							tokenBalance={tokenBalance}
+							sellTokens={sellTokens}
+						/>}
 
 				</div>
 
